@@ -54,26 +54,29 @@ public class LibraryUtil {
 		JSONObject response = new JSONObject();
 		
 		String query = "SELECT b.\"name\" , bb.\"borrow_start_date\", bb.\"date_of_return\", us.\"firstname\", us.\"lastname\""
-				+ "from \"book_borrows\" bb inner join \"users\" us on us.\"id\" = bb.\"user_id\""
-				+ "inner join \"book_copies\" bk on bb.\"book_copy_id\" = bk.\"id\""
-				+ "inner join \"books\" b on bk.\"book_id\" = b.\"id\""
-				+ "order by bb.\"borrow_start_date\" desc";
+				+ " from \"book_borrows\" bb inner join \"users\" us on us.\"id\" = bb.\"user_id\""
+				+ " inner join \"book_copies\" bk on bb.\"book_copy_id\" = bk.\"id\""
+				+ " inner join \"books\" b on bk.\"book_id\" = b.\"id\""
+				+ " where bk.\"id\" = " + book_copy_id
+				+ " order by bb.\"borrow_start_date\" desc";
 		
 		try (
 			Connection conn = util.connectToDB();
 			PreparedStatement statement = conn.prepareStatement(query);
 			ResultSet resultSet = statement.executeQuery();) {
 			
-			if (resultSet.next()) {
-				response.put("user", resultSet.getString("firstname") + " " + resultSet.getString("lastname"));
-				response.put("book", resultSet.getString("name"));
-				response.put("borrow_start_date", resultSet.getDate("borrow_start_date"));
+			while (resultSet.next()) {
+				JSONObject o = new JSONObject();
+				o.put("user", resultSet.getString("firstname") + " " + resultSet.getString("lastname"));
+				o.put("book", resultSet.getString("name"));
+				o.put("borrow_start_date", resultSet.getDate("borrow_start_date"));
 				Date returnDate = resultSet.getDate("date_of_return");
 				if(returnDate != null) {
-					response.put("return_date", resultSet.getDate("date_of_return"));
+					o.put("return_date", resultSet.getDate("date_of_return"));
 				}else {
-					response.put("return_date", "Not returned");
+					o.put("return_date", "Not returned");
 				}
+				response.append("book_borrows", o);
 				
 	    	}
 		
