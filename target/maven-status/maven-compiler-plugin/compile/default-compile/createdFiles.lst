@@ -1,9 +1,0 @@
-restservices\BookService.class
-restservices\CRUDUserService.class
-data\User.class
-utils\DBUtil.class
-data\OcrData.class
-restservices\OCRService.class
-utils\LibraryUtil.class
-utils\UserUtil.class
-data\BookBorrow.class
