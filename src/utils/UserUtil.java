@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
-import data.User;
+import models.User;
 
 public class UserUtil {
 
@@ -39,8 +39,8 @@ public class UserUtil {
                     response.put("status", MESSAGE_OK);
             	
             	}else {
-            		response.put("status", MESSAGE_NOK);
-            		response.put("description", "User " + user.getFirstname() + " " + user.getLastname() + ", " + user.getDate_of_birth() + " exists in DB!");                               		
+            		response.put("status", MESSAGE_NOK);            		
+            		response.put("description", "User " + user.getFirstname() + " " + user.getLastname() + ", " + user.getDate_of_birth() + " already exists in DB!");                               		
             	}
             	
             	return response;

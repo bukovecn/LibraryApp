@@ -1,9 +1,6 @@
 package restservices;
 
-import java.awt.image.DataBufferDouble;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -13,20 +10,19 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
-import data.OcrData;
+import models.OcrData;
 
 @Path("/ocr")
 public class OCRService {
 	
-	public static final String mrtd_api_url = "https://api.microblink.com/v1/recognizers/mrtd";
-	public static final String create_user_api_url = "http://localhost:8080/Library/libraryapi/user/";
+	public static final String MRTD_API_URL = "https://api.microblink.com/v1/recognizers/mrtd";
+	public static final String CREATE_USER_API_URL = "http://localhost:8080/Library/libraryapi/user/";
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -36,7 +32,7 @@ public class OCRService {
 		try {
 
 			Client client = Client.create();	
-	        WebResource webResource = client.resource(mrtd_api_url);
+	        WebResource webResource = client.resource(MRTD_API_URL);
 
 	        JSONObject jsonBody = new JSONObject();
 	        jsonBody.put("returnFullDocumentImage", false);
@@ -57,13 +53,14 @@ public class OCRService {
        
 	        
 	        if (response.getStatus() != 200) {
-	            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+	        	// throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+	        	System.out.println("From Microblink api: HTTP error code : " + response.getStatus());
+	        	return Response.status(response.getStatus()).build();
 	        }
 
 	        
 	        String output = response.getEntity(String.class);
-	        System.out.println("Output from Microblink API:");
-	        System.out.println(output);
+	        System.out.println("Output from Microblink API\n: " + output);
 
 	        JSONObject resp = new JSONObject(output);
 	        JSONObject result = resp.getJSONObject("result");
@@ -86,11 +83,10 @@ public class OCRService {
 	        boolean validCardNumber = validateData(cardNumber, cardNumChechDigit);
 			
 	        
-	        //call POST for adding user
-	        callCreateUserService(client, mrzData, lastname, firstname, validCardNumber, validDateOfBirth);
+	        //call POST for adding new user
+	        ClientResponse newUserResp = callCreateUserService(client, mrzData, lastname, firstname, validCardNumber, validDateOfBirth);
 
-	        
-	        return Response.status(Response.Status.OK).entity(output.toString()).build();
+	        return Response.status(newUserResp.getStatus()).entity(newUserResp.getEntity(String.class)).build();
 	        
 	      } catch (Exception e) {
 	    	  e.printStackTrace();
@@ -99,8 +95,8 @@ public class OCRService {
 
 	}
 
-	private void callCreateUserService(Client client, JSONObject mrzData, String lastname, String firstname, boolean validCardNumber, boolean validDateOfBirth) {
-		WebResource webResource = client.resource(create_user_api_url);
+	private ClientResponse callCreateUserService(Client client, JSONObject mrzData, String lastname, String firstname, boolean validCardNumber, boolean validDateOfBirth) {
+		WebResource webResource = client.resource(CREATE_USER_API_URL);
 		
 		JSONObject jsonUser = new JSONObject();
 		jsonUser.put("firstname", firstname);
@@ -128,10 +124,8 @@ public class OCRService {
 		ClientResponse response = webResource.accept(MediaType.APPLICATION_JSON_TYPE)
 				.type(MediaType.APPLICATION_JSON_TYPE)
 				.post(ClientResponse.class, jsonUser.toString());
-
-		if (response.getStatus() != 200) {
-		    throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-		}
+		
+		return response;
 	}
 
 	private boolean validateData(String stringToBeChecked, char checkDigit) {

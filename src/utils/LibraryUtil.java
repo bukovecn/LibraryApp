@@ -7,16 +7,25 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.json.JSONObject;
 
-import data.BookBorrow;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+
+import models.BookBorrow;
+import models.User;
 
 public class LibraryUtil {
 	
 	DBUtil util = new DBUtil();
 	private static final String MESSAGE_OK = "OK";
 	private static final String MESSAGE_NOK = "NOK";
-
+	public static final String GET_USER_API_URL = "http://localhost:8080/Library/libraryapi/user/";
+	
 	public JSONObject getUserMostLate() {
 		JSONObject response = new JSONObject();
 		
@@ -83,26 +92,84 @@ public class LibraryUtil {
         try (
                 Connection conn = util.connectToDB();
                 PreparedStatement statement = conn.prepareStatement(sqlQuery);) {
-                        	
-        		statement.setInt(1, borrow.getBook_copy_id());
-                statement.setInt(2, borrow.getUser_id());                    
-                statement.setDate(3, new Date(borrow.getBorrow_start_date().getTime()));
-                statement.setDate(4, new Date(borrow.getBorrow_end_date().getTime()));
-                statement.addBatch();
-                statement.executeBatch(); 
+                 
+        	if(!checIfkUserExists(borrow.getUser_id())) {
+        		response.put("status", MESSAGE_NOK);
+                response.put("description", "User with ID = " + borrow.getBook_copy_id() + " not in DB!");
+                return response;
+        	}
+        	
+        	if(!checkIfBookAvailable(borrow.getBook_copy_id(), conn)) {
+        		response.put("status", MESSAGE_NOK);
+                response.put("description", "Book copy with ID = " + borrow.getBook_copy_id() + " not available!");
+                return response;
+        	}
+        	
+        	statement.setInt(1, borrow.getBook_copy_id());
+            statement.setInt(2, borrow.getUser_id());                    
+            statement.setDate(3, new Date(borrow.getBorrow_start_date().getTime()));
+            statement.setDate(4, new Date(borrow.getBorrow_end_date().getTime()));
+            statement.addBatch();
+            statement.executeBatch(); 
 
-                updateCopyAsBorrowed(borrow.getBook_copy_id());
-                
-                response.put("status", MESSAGE_OK);
-            	
-            	return response;
-         
+            updateCopyAsBorrowed(borrow.getBook_copy_id());
+            
+            response.put("status", MESSAGE_OK);
+        	
+        	return response;
+        	
         } catch (SQLException | ClassNotFoundException | URISyntaxException ex) {
             System.out.println("Error while inserting borrow to DB: " + ex.toString());
             response.put("status", MESSAGE_NOK);
             response.put("description", "Error while inserting book borrow to DB");
             return response;
         }
+	}
+	
+	private boolean checIfkUserExists(int user_id) {
+		Client client = Client.create();	
+
+		ClientResponse res = client.resource(GET_USER_API_URL)
+        		.path(String.valueOf(user_id))
+        		.type(MediaType.APPLICATION_JSON)
+        		.get(ClientResponse.class);
+          
+		String out = res.getEntity(String.class);
+		JSONObject user = new JSONObject(out);
+		
+        if (user.getInt("id") != 0) {
+        	return true;
+        }else {
+        	return false;
+        }
+	}
+
+	private boolean checkIfBookAvailable(int id, Connection conn) {
+		boolean available = false;
+    	String check = "SELECT * FROM \"book_copies\" where \"id\" = " + id;
+    	
+    	try (
+			PreparedStatement statement = conn.prepareStatement(check);
+    		ResultSet resultSet = statement.executeQuery();) {
+    		
+    		if (resultSet.next()) {
+    			if(resultSet.getBoolean("borrowed") == false) {
+    				available = true;
+    			}else {
+    				available = false;
+    			}
+    			
+    		}else {
+    			available = false;
+    			System.out.println("Book with ID: " + id + " don't exists in DB");
+    		}
+    		
+
+    	} catch (Exception e) {
+            System.out.println("Error while executing select: " + e.getMessage());
+        }
+    	
+    	return available;
 	}
 
 	private void updateCopyAsBorrowed(int book_copy_id) {

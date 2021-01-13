@@ -1,6 +1,5 @@
 package restservices;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.ws.rs.DELETE;
@@ -15,7 +14,7 @@ import javax.ws.rs.core.Response;
 
 import org.json.JSONObject;
 
-import data.User;
+import models.User;
 import utils.UserUtil;
 
 @Path("/user")
@@ -52,7 +51,12 @@ public class CRUDUserService {
 		UserUtil util = new UserUtil();
 		User u = util.getUserWithId(id);
 		
-		return Response.status(Response.Status.OK).entity(u).build();
+		if(u.getFirstname() != null) {
+			return Response.status(Response.Status.OK).entity(u).build();
+		}else {
+			return Response.status(Response.Status.NO_CONTENT).entity(u).build();
+		}
+				
 		
 	}
 	
@@ -62,6 +66,10 @@ public class CRUDUserService {
  
 		UserUtil util = new UserUtil();
 		JSONObject jsonObject = util.createUser(user);
+		
+		if(jsonObject.getString("status").equals("NOK")) {
+			return Response.status(Response.Status.BAD_REQUEST).entity(jsonObject.toString()).build();
+		}
 
 		return Response.status(Response.Status.OK).entity(jsonObject.toString()).build();
 		

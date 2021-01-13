@@ -10,7 +10,7 @@ import javax.ws.rs.core.Response;
 
 import org.json.JSONObject;
 
-import data.BookBorrow;
+import models.BookBorrow;
 import utils.LibraryUtil;
 
 @Path("/book")
