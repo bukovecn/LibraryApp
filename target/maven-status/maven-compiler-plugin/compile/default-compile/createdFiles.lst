@@ -1,9 +1,9 @@
 restservices\BookService.class
 restservices\CRUDUserService.class
-data\User.class
+models\User.class
 utils\DBUtil.class
-data\OcrData.class
+models\OcrData.class
+models\BookBorrow.class
 restservices\OCRService.class
 utils\LibraryUtil.class
 utils\UserUtil.class
-data\BookBorrow.class

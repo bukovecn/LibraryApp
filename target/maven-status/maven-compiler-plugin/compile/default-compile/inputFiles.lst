@@ -1,9 +1,9 @@
-C:\Users\Nikol\git\repository\Library\src\data\User.java
-C:\Users\Nikol\git\repository\Library\src\data\OcrData.java
+C:\Users\Nikol\git\repository\Library\src\models\User.java
 C:\Users\Nikol\git\repository\Library\src\restservices\BookService.java
+C:\Users\Nikol\git\repository\Library\src\models\BookBorrow.java
+C:\Users\Nikol\git\repository\Library\src\models\OcrData.java
 C:\Users\Nikol\git\repository\Library\src\restservices\CRUDUserService.java
 C:\Users\Nikol\git\repository\Library\src\restservices\OCRService.java
 C:\Users\Nikol\git\repository\Library\src\utils\UserUtil.java
 C:\Users\Nikol\git\repository\Library\src\utils\DBUtil.java
 C:\Users\Nikol\git\repository\Library\src\utils\LibraryUtil.java
-C:\Users\Nikol\git\repository\Library\src\data\BookBorrow.java

@@ -98,7 +98,7 @@ public class LibraryUtil {
                  
         	if(!checIfkUserExists(borrow.getUser_id())) {
         		response.put("status", MESSAGE_NOK);
-                response.put("description", "User with ID = " + borrow.getBook_copy_id() + " not in DB!");
+                response.put("description", "User with ID = " + borrow.getUser_id() + " not in DB!");
                 return response;
         	}
         	
