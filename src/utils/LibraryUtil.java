@@ -8,16 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.json.JSONObject;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 
 import models.BookBorrow;
-import models.User;
 
 public class LibraryUtil {
 	
@@ -29,9 +26,12 @@ public class LibraryUtil {
 	public JSONObject getUserMostLate() {
 		JSONObject response = new JSONObject();
 		
-		String query = "SELECT MAX(bb.\"date_of_return\" - bb.\"borrow_end_date\") as days_late, us.\"firstname\", us.\"lastname\" "
-				+ "from \"book_borrows\" bb inner join \"users\" us on us.\"id\" = bb.\"user_id\" "
-				+ "group by us.\"firstname\", us.\"lastname\"";
+		String query = "select us.\"firstname\", us.\"lastname\", (bb.\"date_of_return\" - bb.\"borrow_end_date\") as days_late" + 
+				" from \"book_borrows\" bb inner join \"users\" us on us.\"id\" = bb.\"user_id\"" + 
+				" where (bb.\"date_of_return\" - bb.\"borrow_end_date\")= (SELECT MAX(bb.\"date_of_return\" - bb.\"borrow_end_date\") as days_late" + 
+				" from \"book_borrows\" bb inner join \"users\" us on us.\"id\" = bb.\"user_id\"" + 
+				" where bb.\"date_of_return\" is not null and bb.\"borrow_end_date\" is not null" + 
+				" group by us.\"id\")";
 		
 		try (
 			Connection conn = util.connectToDB();
